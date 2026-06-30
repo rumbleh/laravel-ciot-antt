@@ -1,0 +1,13 @@
+# Mantém o pacote leve no `composer install --prefer-dist`:
+# arquivos de desenvolvimento não são incluídos no tarball de distribuição.
+/tests              export-ignore
+/docs               export-ignore
+/.github            export-ignore
+/.gitattributes     export-ignore
+/.gitignore         export-ignore
+/phpunit.xml        export-ignore
+/dcs_pef_v1-1.pdf   export-ignore
+/.phpunit.cache     export-ignore
+
+*.php text eol=lf
+*.md  text eol=lf

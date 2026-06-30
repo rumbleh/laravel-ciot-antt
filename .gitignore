@@ -1,0 +1,12 @@
+/vendor/
+/.phpunit.cache/
+/.phpunit.result.cache
+composer.lock
+.phpunit.cache
+.DS_Store
+/build/
+/.idea/
+/.vscode/
+*.pem
+*.pfx
+*.p12
