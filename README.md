@@ -5,8 +5,8 @@ Transporte) junto ao web service **PEF da ANTT** (Pagamento Eletrônico de Frete
 conforme o manual **DCS PEF v1.1** (Resolução ANTT 5.892/2019 e MP 1.343/2026 —
 Piso Mínimo de Frete).
 
-> **Pacote privado.** Não publicar em repositório público (ver `LICENSE`).
-> Distribuído via repositório Git privado + Composer (ver [`docs/INSTALL.md`](docs/INSTALL.md)).
+> **Open source (MIT).** Distribuído via Packagist: `composer require rumbleh/laravel-ciot-antt`.
+> Detalhes de instalação e CI/CD em [`docs/INSTALL.md`](docs/INSTALL.md).
 
 ---
 
@@ -35,7 +35,7 @@ Piso Mínimo de Frete).
 
 ## Requisitos
 
-- PHP **8.3+** (testado em 8.4) com extensões `json` e `openssl`
+- PHP **8.2+** (testado em 8.4) com extensões `json` e `openssl`
 - Laravel **11** ou **12**
 - Certificado digital **A1** (ICP-Brasil) da Instituição de Pagamento / Empresa
   Transportadora, habilitado pela ANTT
@@ -47,8 +47,8 @@ composer require rumbleh/laravel-ciot-antt
 php artisan vendor:publish --tag=ciot-config
 ```
 
-Instalação **privada** e **não interativa** (CI/CD na DigitalOcean): veja
-[`docs/INSTALL.md`](docs/INSTALL.md).
+Build **não interativo** em CI/CD (com `--no-dev`) e configuração do certificado:
+veja [`docs/INSTALL.md`](docs/INSTALL.md).
 
 ## Uso em 30 segundos
 
@@ -95,7 +95,7 @@ if ($resposta->sucesso()) {
 
 - 📘 [`docs/USAGE.md`](docs/USAGE.md) — **guia completo com exemplos** de todos os
   serviços, configuração, certificado, tratamento de erros e regras de negócio.
-- 🔐 [`docs/INSTALL.md`](docs/INSTALL.md) — instalação privada via Composer em CI/CD.
+- 🔐 [`docs/INSTALL.md`](docs/INSTALL.md) — instalação, build em CI/CD e certificado.
 
 ## Testes
 
@@ -117,4 +117,4 @@ composer test
 
 ## Licença
 
-Proprietária — uso restrito. Ver [`LICENSE`](LICENSE).
+[MIT](LICENSE) © Thiago de Queiroz.

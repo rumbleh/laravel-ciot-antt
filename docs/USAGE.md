@@ -59,7 +59,7 @@ composer require rumbleh/laravel-ciot-antt
 php artisan vendor:publish --tag=ciot-config   # publica config/ciot.php
 ```
 
-(Instalação privada em CI/CD: ver [`INSTALL.md`](INSTALL.md).)
+(Build em CI/CD e configuração do certificado: ver [`INSTALL.md`](INSTALL.md).)
 
 Configure o `.env`:
 
