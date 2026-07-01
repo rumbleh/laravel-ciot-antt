@@ -33,7 +33,8 @@
                 "Rumbleh\\CiotAntt\\CiotServiceProvider"
             ],
             "aliases": {
-                "Ciot": "Rumbleh\\CiotAntt\\Facades\\Ciot"
+                "Ciot": "Rumbleh\\CiotAntt\\Facades\\Ciot",
+                "GeradorCiot": "Rumbleh\\CiotAntt\\Facades\\GeradorCiot"
             }
         }
     },

@@ -43,6 +43,24 @@ Veja [`USAGE.md`](USAGE.md) para a configuração completa (certificado, geraç�
 
 ---
 
+## Gerador CIOT v3 (token + API key — sem certificado)
+
+Se for usar apenas o **Gerador CIOT v3**, não é necessário certificado A1: basta a
+URL do ambiente (resolvida por `CIOT_AMBIENTE`) e a **API key**, fornecida pela sua
+aplicação como *secret* (nunca versionada):
+
+```bash
+CIOT_AMBIENTE=homologacao
+CIOT_API_KEY=sua-chave-aqui
+# CIOT_GERADOR_VERIFICAR_SSL=true   # false só se necessário
+```
+
+Definida a `CIOT_API_KEY`, o pacote passa a gerar o `IdOperacaoTransporte`
+automaticamente por esta API (ocupando o lugar da DLL oficial). Detalhes na seção 4
+(opção C) do [`USAGE.md`](USAGE.md).
+
+---
+
 ## Atualizando a versão
 
 ```bash

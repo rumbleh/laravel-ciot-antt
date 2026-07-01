@@ -78,6 +78,15 @@ CIOT_PATH_PREFIX=api
 # (opcional) classe geradora do IdOperacaoTransporte
 # CIOT_OPERATION_ID_GENERATOR="App\\Ciot\\MeuGeradorDeId"
 
+# Gerador CIOT v3 (token + API key) — ver seção 4, opção C.
+# Definir a API key já ativa o gerador como OperationIdGenerator automático.
+# CIOT_API_KEY=sua-chave-aqui
+# CIOT_GERADOR_TOKEN_TTL=3540           # validade do token em segundos (~59 min)
+# CIOT_GERADOR_VERIFICAR_SSL=true       # false só se necessário
+# CIOT_GERADOR_TIMEOUT=30               # (opcional) cai para o timeout global se ausente
+# CIOT_GERADOR_URL_HOMOLOGACAO=...      # (opcional) sobrescreve a URL do ambiente
+# CIOT_GERADOR_URL_PRODUCAO=...
+
 # (opcional) validar regras de negócio localmente antes de enviar (padrão: true)
 CIOT_VALIDAR_ANTES=true
 
@@ -163,6 +172,54 @@ CIOT_OPERATION_ID_GENERATOR="App\\Ciot\\MeuGeradorDeId"
 Com o gerador registrado, você **não** precisa chamar `->comId(...)`: o pacote
 gera o id automaticamente na hora de declarar. Sem id e sem gerador, é lançada
 `CiotConfigurationException`.
+
+**C) Usar o Gerador CIOT v3** (token + API key) — a implementação **pronta** do
+contrato acima, que ocupa o lugar da DLL oficial. Basta fornecer a API key:
+
+```dotenv
+CIOT_AMBIENTE=homologacao          # define a URL usada (homologação/produção)
+CIOT_API_KEY=sua-chave-aqui        # fornecida pela sua aplicação — nunca fixa no código
+```
+
+Definida a `CIOT_API_KEY` e **sem** `CIOT_OPERATION_ID_GENERATOR`, o pacote passa
+a usar automaticamente o `GeradorCiot` como `OperationIdGenerator`: o
+`IdOperacaoTransporte` é gerado por esta API (a partir do CPF/CNPJ do contratado)
+na hora de declarar — você não precisa chamar `->comId(...)`.
+
+Também é possível usar o gerador **diretamente**, sem passar pela declaração:
+
+```php
+use Rumbleh\CiotAntt\Facades\GeradorCiot;
+
+$numero   = GeradorCiot::gerarCiot('12345678901');       // CPF ou CNPJ
+$consulta = GeradorCiot::consultarCiot('12345678000199'); // consulta (mesmo endpoint /gerar)
+```
+
+Ou por injeção de dependência:
+
+```php
+use Rumbleh\CiotAntt\GeradorCiot;
+
+final class EmissorService
+{
+    public function __construct(private GeradorCiot $gerador) {}
+
+    public function emitir(string $cpfCnpj): string
+    {
+        return $this->gerador->gerarCiot($cpfCnpj);
+    }
+}
+```
+
+O token JWT é obtido no `POST /token` (header `chave`), reutilizado por ~59 min e
+renovado automaticamente ao expirar — você não gerencia autenticação. Configuração
+completa do gerador (URLs por ambiente, `token_ttl`, `verificar_ssl`) em
+`config/ciot.php`, bloco `gerador`. As falhas lançam `CiotAuthenticationException`,
+`CiotUnauthorizedException` ou `CiotApiException` (com status HTTP, corpo e endpoint).
+
+> **Prioridade do `OperationIdGenerator`:** (1) classe explícita em
+> `ciot.operation_id_generator`; (2) `GeradorCiot`, se a `CIOT_API_KEY` estiver
+> definida; (3) nenhum — informe o id manualmente via `->comId(...)`.
 
 ---
 
@@ -576,8 +633,17 @@ O pacote distingue **três** situações:
 |----------|--------------|
 | Dados inválidos (validação local) | lança `CiotValidationException` **antes** do envio |
 | Falha de rede/TLS/HTTP/JSON | lança `CiotConnectionException` |
-| Configuração incompleta (certificado, id, ambiente) | lança `CiotConfigurationException` |
+| Configuração incompleta (certificado, id, ambiente, **API key**) | lança `CiotConfigurationException` |
 | ANTT recusou por regra de negócio | **não lança**: `$resposta->rejeitado()` / `codigo()` / `mensagem()` |
+
+No **Gerador CIOT v3** (token + API key), as falhas HTTP viram exceções próprias
+que carregam `statusHttp`, `corpoResposta` e `endpoint` (todas estendem `CiotException`):
+
+| Situação | Exceção |
+|----------|---------|
+| Falha na autenticação (`POST /token` != 2xx ou sem `token`) | `CiotAuthenticationException` |
+| `POST /gerar` retornou HTTP 401 (token inválido/expirado) | `CiotUnauthorizedException` |
+| `POST /gerar` retornou outro status != 2xx ou corpo inesperado | `CiotApiException` |
 
 ```php
 use Rumbleh\CiotAntt\Exceptions\{CiotValidationException, CiotConnectionException, CiotConfigurationException};

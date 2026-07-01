@@ -148,6 +148,53 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Gerador CIOT v3 (API key + token JWT)
+    |--------------------------------------------------------------------------
+    |
+    | Caminho alternativo, mais simples, para gerar o identificador da operação
+    | (CIOT) sem o fluxo mTLS completo: autentica em POST /token com a API key
+    | (header "chave") e gera/consulta em POST /gerar com o token Bearer.
+    |
+    | Esta API ocupa o lugar da "DLL oficial" referida pelo contrato
+    | OperationIdGenerator. Quando "api_key" está definida e nenhuma classe é
+    | informada em "operation_id_generator", o pacote usa automaticamente o
+    | GeradorCiot como gerador do IdOperacaoTransporte em declararOperacao().
+    |
+    | A URL é resolvida pelo mesmo "ambiente" global acima (homologacao/producao)
+    | e nunca fica fixa no código.
+    |
+    */
+    'gerador' => [
+        // API key da aplicação que consome o pacote (header "chave" no /token).
+        'api_key' => env('CIOT_API_KEY'),
+
+        // URLs base por ambiente (sem o sufixo /token ou /gerar).
+        'urls' => [
+            Ambiente::Homologacao->value => env(
+                'CIOT_GERADOR_URL_HOMOLOGACAO',
+                'https://appservices-hml.antt.gov.br/pefServices'
+            ),
+            Ambiente::Producao->value => env(
+                'CIOT_GERADOR_URL_PRODUCAO',
+                'https://mtcuybq605.execute-api.sa-east-1.amazonaws.com/api-ciot-prd/GeradorCIOT'
+            ),
+        ],
+
+        // Validade do token em segundos. A DLL reutiliza por ~59 min (3540s).
+        'token_ttl' => (int) env('CIOT_GERADOR_TOKEN_TTL', 3540),
+
+        // Tempo limite específico do gerador (cai para o timeout global se nulo).
+        'timeout' => env('CIOT_GERADOR_TIMEOUT'),
+        'connect_timeout' => env('CIOT_GERADOR_CONNECT_TIMEOUT'),
+
+        // Verificação TLS do gerador. A DLL ignora o certificado; aqui o padrão
+        // é seguro (true) e totalmente configurável — nunca fixo. Use false só
+        // se necessário (ex.: ambiente de homologação com cadeia incompleta).
+        'verificar_ssl' => env('CIOT_GERADOR_VERIFICAR_SSL', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Logging
     |--------------------------------------------------------------------------
     |

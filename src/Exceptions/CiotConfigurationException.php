@@ -52,6 +52,22 @@ class CiotConfigurationException extends CiotException
         );
     }
 
+    public static function apiKeyNaoConfigurada(): self
+    {
+        return new self(
+            'A API key do Gerador CIOT v3 não foi configurada. Defina CIOT_API_KEY '
+            . '(config "ciot.gerador.api_key") na aplicação que usa o pacote.'
+        );
+    }
+
+    public static function urlGeradorNaoConfigurada(string $ambiente): self
+    {
+        return new self(
+            "URL do Gerador CIOT v3 não configurada para o ambiente '{$ambiente}'. "
+            . 'Defina "ciot.gerador.urls" em config/ciot.php.'
+        );
+    }
+
     public static function geradorDeIdNaoRegistrado(): self
     {
         return new self(

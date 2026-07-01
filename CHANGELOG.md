@@ -4,6 +4,28 @@ Todas as mudanças relevantes deste pacote serão documentadas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o
 versionamento segue [SemVer](https://semver.org/lang/pt-BR/).
 
+## [Não lançado]
+
+### Adicionado
+- **Gerador CIOT v3** (token + API key) como caminho alternativo, mais simples,
+  para gerar/consultar o CIOT — sem o fluxo mTLS completo:
+  - Cliente `Rumbleh\CiotAntt\GeradorCiot` e facade `GeradorCiot` com
+    `authenticate()`, `gerarCiot()`, `consultarCiot()` e `refreshToken()`.
+  - Autenticação em `POST /token` (header `chave`) com reuso automático do
+    token por ~59 min (`TokenManager`) e renovação transparente ao expirar
+    (inclusive retentativa única em HTTP 401).
+  - Interpretação dos três formatos de resposta do `/gerar`
+    (`{"dados":{"ciot"}}`, `{"Dados":{"CIOT"}}` e string crua).
+  - URL configurável por ambiente (homologação/produção) — nunca fixa; API key
+    fornecida pela aplicação consumidora via `CIOT_API_KEY` (`ciot.gerador.api_key`).
+  - Verificação TLS configurável (`ciot.gerador.verificar_ssl`).
+  - Exceções próprias: `CiotAuthenticationException`, `CiotUnauthorizedException`
+    e `CiotApiException` (com status HTTP, corpo e endpoint).
+- **Integração automática**: quando a `CIOT_API_KEY` está definida e nenhuma
+  classe é informada em `ciot.operation_id_generator`, o `GeradorCiot` passa a
+  ser usado como `OperationIdGenerator` — o `IdOperacaoTransporte` exigido por
+  `declararOperacao()` é gerado por esta API, ocupando o lugar da DLL oficial.
+
 ## [1.0.0] - 2026-06-23
 
 ### Adicionado

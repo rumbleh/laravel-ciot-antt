@@ -30,6 +30,9 @@ Piso Mínimo de Frete).
   (normalização B60) e placa (padrões Brasileiro e Mercosul).
 - Geração do `IdOperacaoTransporte` **plugável** (contrato `OperationIdGenerator`)
   ou informada manualmente.
+- **Gerador CIOT v3** (token + API key) embutido: caminho alternativo e simples
+  para gerar/consultar o CIOT (`GeradorCiot::gerarCiot()` / `consultarCiot()`),
+  que também se integra automaticamente como `OperationIdGenerator`.
 - Respostas tipadas com `sucesso()`, `codigo()`, `mensagem()` e helpers por serviço
   (ex.: `ciotComDigito()`, `avisoTransportador()`).
 
@@ -90,6 +93,25 @@ if ($resposta->sucesso()) {
     report("ANTT [{$resposta->codigo()}]: {$resposta->mensagem()}");
 }
 ```
+
+## Gerador CIOT v3 (token + API key)
+
+Alternativa **simples** ao fluxo mTLS: autentica com uma API key e gera/consulta o
+CIOT por HTTP. A URL é resolvida pelo `CIOT_AMBIENTE`; a **API key é fornecida pela
+sua aplicação** (`CIOT_API_KEY`), nunca fixa no código.
+
+```php
+use Rumbleh\CiotAntt\Facades\GeradorCiot;
+
+$numero   = GeradorCiot::gerarCiot('12345678901');        // CPF ou CNPJ
+$consulta = GeradorCiot::consultarCiot('12345678000199'); // mesma API, payload de consulta
+```
+
+O token JWT é obtido, reutilizado por ~59 min e renovado automaticamente. Além do
+uso direto, definir a `CIOT_API_KEY` faz o `GeradorCiot` ser usado **automaticamente**
+como `OperationIdGenerator` — o `IdOperacaoTransporte` da `declararOperacao()` passa
+a ser gerado por esta API (ocupando o lugar da DLL oficial). Detalhes na seção 4 do
+[`docs/USAGE.md`](docs/USAGE.md).
 
 ## Documentação
 
