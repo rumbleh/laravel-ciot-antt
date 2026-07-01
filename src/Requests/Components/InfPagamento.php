@@ -22,9 +22,10 @@ use Rumbleh\CiotAntt\ValueObjects\Documento;
  *  - 6 (Pix): ChavePix e IdentificadorPix (B92/B99).
  *  - CpfCnpjCreditado é sempre obrigatório (recebedor do pagamento).
  *
- * Parcelamento (IndPagamento = 1): ver classe Parcela. Quando há exatamente uma
- * parcela, os campos são "achatados" no objeto (como no exemplo JSON do
- * manual); com várias, são enviados como lista "Parcelas".
+ * Parcelamento (IndPagamento = 1): ver classe Parcela. Os campos da parcela
+ * (NumeroParcela/DataVencimento/ValorParcela) são ACHATADOS no objeto. Como
+ * InfPagamento já é uma lista no JSON, cada parcela vira um objeto próprio (não
+ * há sub-array "Parcelas" — ver paraLista()).
  */
 final class InfPagamento
 {
@@ -71,11 +72,50 @@ final class InfPagamento
     }
 
     /**
+     * Representação em objeto único: cabeçalho + a primeira parcela (se houver).
+     * Para o wire format completo — que pode render vários objetos, um por
+     * parcela — use paraLista(). Útil para à vista / parcela única.
+     *
      * @return array<string, mixed>
      */
     public function toArray(): array
     {
-        $dados = Payload::semNulos([
+        return $this->paraLista()[0];
+    }
+
+    /**
+     * "Wire format" da ANTT: uma LISTA de objetos InfPagamento.
+     *
+     * À vista → 1 objeto (apenas o cabeçalho). A prazo → 1 objeto POR PARCELA,
+     * cada um com o cabeçalho + NumeroParcela/DataVencimento/ValorParcela
+     * ACHATADOS no mesmo nível. A especificação (item 16 + regra B105 do manual
+     * DCS PEF, e o exemplo JSON págs. 24-26) NÃO usa um sub-array "Parcelas":
+     * o próprio InfPagamento já é a lista, então cada parcela é um objeto.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function paraLista(): array
+    {
+        $cabecalho = $this->cabecalhoToArray();
+
+        if ($this->parcelas === []) {
+            return [$cabecalho];
+        }
+
+        return array_map(
+            static fn (Parcela $p): array => array_merge($cabecalho, $p->toArray()),
+            $this->parcelas,
+        );
+    }
+
+    /**
+     * Cabeçalho do pagamento (todos os campos exceto os de parcela).
+     *
+     * @return array<string, mixed>
+     */
+    private function cabecalhoToArray(): array
+    {
+        return Payload::semNulos([
             'TipoPagamento' => $this->tipoPagamento->value,
             'CodigoInstituicaoFinanceira' => $this->codigoInstituicaoFinanceira !== null
                 ? (string) $this->codigoInstituicaoFinanceira
@@ -88,29 +128,5 @@ final class InfPagamento
             'IdentificadorPix' => $this->identificadorPix,
             'IndPagamento' => $this->indPagamento->value,
         ]);
-
-        return array_merge($dados, $this->parcelasToArray());
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function parcelasToArray(): array
-    {
-        if ($this->parcelas === []) {
-            return [];
-        }
-
-        if (count($this->parcelas) === 1) {
-            // Achatamento conforme o exemplo JSON do manual (parcela única).
-            return $this->parcelas[0]->toArray();
-        }
-
-        return [
-            'Parcelas' => array_map(
-                static fn (Parcela $p): array => $p->toArray(),
-                $this->parcelas,
-            ),
-        ];
     }
 }

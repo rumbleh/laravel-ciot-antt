@@ -161,7 +161,7 @@ final class DeclaracaoPayloadTest extends TestCase
         $this->assertArrayNotHasKey('Parcelas', $array);
     }
 
-    public function test_pagamento_a_prazo_com_multiplas_parcelas_usa_lista(): void
+    public function test_pagamento_a_prazo_com_multiplas_parcelas_vira_varios_infpagamento(): void
     {
         $pag = (new InfPagamento(
             tipoPagamento: TipoPagamento::Pix,
@@ -174,11 +174,45 @@ final class DeclaracaoPayloadTest extends TestCase
             new Parcela(2, '2026-08-10', 750.25),
         );
 
-        $array = $pag->toArray();
+        // ANTT (item 16 + regra B105): campos achatados, um objeto por parcela.
+        $lista = $pag->paraLista();
 
-        $this->assertCount(2, $array['Parcelas']);
-        $this->assertSame('2', $array['Parcelas'][1]['NumeroParcela']);
-        $this->assertArrayNotHasKey('NumeroParcela', $array);
+        $this->assertCount(2, $lista);
+        $this->assertSame('1', $lista[0]['NumeroParcela']);
+        $this->assertSame('2026-07-10', $lista[0]['DataVencimento']);
+        $this->assertSame('750.25', $lista[0]['ValorParcela']);
+        $this->assertSame('2', $lista[1]['NumeroParcela']);
+        $this->assertSame('2026-08-10', $lista[1]['DataVencimento']);
+        $this->assertSame(6, $lista[0]['TipoPagamento']);
+        $this->assertSame('E1234', $lista[1]['IdentificadorPix']);
+        $this->assertArrayNotHasKey('Parcelas', $lista[0]);
+        $this->assertArrayNotHasKey('Parcelas', $lista[1]);
+    }
+
+    public function test_request_serializa_parcelas_como_infpagamento_achatados(): void
+    {
+        $req = DeclaracaoOperacaoTransporteRequest::cargaLotacao(
+            self::CNPJ_VALIDO,
+            self::RNTRC_VALIDO,
+            self::CNPJ_VALIDO_2,
+        )->comPagamentos(
+            (new InfPagamento(
+                tipoPagamento: TipoPagamento::Pix,
+                cpfCnpjCreditado: self::CPF_VALIDO,
+                chavePix: self::CPF_VALIDO,
+                identificadorPix: 'E1234',
+            ))->comParcelas(
+                new Parcela(1, '2026-07-10', 750.25),
+                new Parcela(2, '2026-08-10', 750.25),
+            )
+        );
+
+        $inf = $req->toArray()['InfPagamento'];
+
+        $this->assertCount(2, $inf);
+        $this->assertSame('1', $inf[0]['NumeroParcela']);
+        $this->assertSame('2', $inf[1]['NumeroParcela']);
+        $this->assertArrayNotHasKey('Parcelas', $inf[0]);
     }
 
     public function test_tac_agregado_payload_minimo(): void

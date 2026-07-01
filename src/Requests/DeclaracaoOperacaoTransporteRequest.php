@@ -233,10 +233,16 @@ final class DeclaracaoOperacaoTransporteRequest implements PefRequest
             $payload['DadosCarga'] = $this->dadosCarga->toArray();
         }
 
-        $payload['InfPagamento'] = array_map(
-            static fn (InfPagamento $p): array => $p->toArray(),
-            $this->pagamentos,
-        );
+        // InfPagamento é uma lista achatada: cada pagamento a prazo rende um
+        // objeto por parcela (com NumeroParcela/DataVencimento/ValorParcela no
+        // mesmo nível). Ver InfPagamento::paraLista().
+        $infPagamentos = [];
+        foreach ($this->pagamentos as $pagamento) {
+            foreach ($pagamento->paraLista() as $objeto) {
+                $infPagamentos[] = $objeto;
+            }
+        }
+        $payload['InfPagamento'] = $infPagamentos;
 
         if ($this->indicadores !== null) {
             $payload['InfIndicadoresOperacionais'] = $this->indicadores->toArray();

@@ -4,6 +4,21 @@ Todas as mudanças relevantes deste pacote serão documentadas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o
 versionamento segue [SemVer](https://semver.org/lang/pt-BR/).
 
+## [1.1.1] - 2026-07-01
+
+### Corrigido
+- **Serialização de pagamento parcelado (múltiplas parcelas).** `InfPagamento`
+  colocava `NumeroParcela`/`DataVencimento`/`ValorParcela` dentro de um sub-array
+  `Parcelas` — chave inexistente na especificação — o que fazia a ANTT rejeitar a
+  declaração pela regra **B105** ("os campos de parcelamento devem ser informados
+  quando o pagamento for parcelado"). Conforme o manual DCS PEF (item 16 + exemplo
+  JSON págs. 24-26), o `InfPagamento` já é uma **lista** e os campos da parcela vão
+  **achatados**: cada parcela passa a virar um objeto `InfPagamento` próprio.
+  - Novo método `InfPagamento::paraLista()` (wire format: 1 objeto por parcela; à
+    vista, 1 objeto só com o cabeçalho). `toArray()` mantido para o objeto único.
+  - `DeclaracaoOperacaoTransporteRequest::toArray()` faz o fan-out das parcelas.
+  - Pagamentos **à vista** e com **parcela única** não mudam de comportamento.
+
 ## [1.1.0] - 2026-06-30
 
 ### Adicionado

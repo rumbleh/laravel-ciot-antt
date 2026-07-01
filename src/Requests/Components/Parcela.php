@@ -12,10 +12,11 @@ use Rumbleh\CiotAntt\Support\Payload;
  * Obrigatórias quando IndPagamento = 1 (a prazo) — regra B105; não devem ser
  * informadas quando à vista — regra B106.
  *
- * Observação sobre o "wire format": o exemplo JSON do manual mostra os campos
- * NumeroParcela/DataVencimento/ValorParcela DENTRO do objeto InfPagamento (uma
- * única parcela). Quando há múltiplas parcelas, o pacote as serializa como uma
- * lista "Parcelas" no objeto InfPagamento (ver InfPagamento::toArray()).
+ * Observação sobre o "wire format": os campos NumeroParcela/DataVencimento/
+ * ValorParcela vão ACHATADOS DENTRO do objeto InfPagamento. Como InfPagamento já
+ * é uma lista no JSON, múltiplas parcelas viram múltiplos objetos InfPagamento —
+ * um por parcela, cada um com esses campos (não há sub-array "Parcelas"). Ver
+ * InfPagamento::paraLista().
  */
 final class Parcela
 {
