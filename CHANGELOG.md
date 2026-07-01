@@ -4,7 +4,7 @@ Todas as mudanças relevantes deste pacote serão documentadas aqui.
 O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/) e o
 versionamento segue [SemVer](https://semver.org/lang/pt-BR/).
 
-## [Não lançado]
+## [1.1.0] - 2026-06-30
 
 ### Adicionado
 - **Gerador CIOT v3** (token + API key) como caminho alternativo, mais simples,
